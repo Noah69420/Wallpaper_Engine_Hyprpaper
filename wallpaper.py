@@ -14,6 +14,7 @@ FIFO = "/home/noah/.config/hypr/tools/wallpaper_fifo"
 run = True
 subprocess_alive = False
 
+
 def read_file(file_path):
     with open(file_path, "r") as file:
         for line in file:
@@ -26,10 +27,12 @@ def read_file(file_path):
                     return os.path.basename(value)
     return None
 
+
 def update_hyprpaper_config(wallpaper_path):
-        with open(config_file_path, "w") as config_file:
-            config_file.write(f"preload = {pfad}{wallpaper_path}\n")
-            config_file.write(f"wallpaper = ,{pfad}{wallpaper_path}\n")
+    with open(config_file_path, "w") as config_file:
+        config_file.write(f"preload = {pfad}{wallpaper_path}\n")
+        config_file.write(f"wallpaper = ,{pfad}{wallpaper_path}\n")
+
 
 def restart_hyprpaper():
     global subprocess_alive, timer_old, prozess
@@ -42,9 +45,11 @@ def restart_hyprpaper():
         subprocess_alive = True
         timer_old = time.time()
 
+
 def zufall(wallpapers):
-        bild = random.choices(wallpapers)[0]
-        return bild
+    bild = random.choices(wallpapers)[0]
+    return bild
+
 
 def read_pipe():
     global run, timer_old
@@ -58,6 +63,7 @@ def read_pipe():
                     break
                 if "next" == line:
                     timer_old = timer_old - sleep_time
+
 
 def main():
     try:
@@ -86,6 +92,7 @@ def main():
     except KeyboardInterrupt:
         run = False
         os.remove(FIFO)
+
 
 if __name__ == "__main__":
     main()
