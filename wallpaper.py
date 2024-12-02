@@ -5,16 +5,23 @@ import subprocess
 import threading
 from pathlib import Path
 
-pfad = f"{Path.home()}/.config/backgrounds/"
-config_file_path = f"{Path.home()}/.config/hypr/hyprpaper.conf"
-sleep_time = 10
-timer_old = 0
+path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
+path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
+path_hyprconf: str = ".config/hypr/hyprpaper.conf"
+sleep_time: int = 600
+timer_old: float = 0
 prozess = ""
 
 FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper_fifo"
 
 run = True
 subprocess_alive = False
+
+run: bool = True
+subprocess_alive: bool = False
+
+# Modus
+freeze: bool = False
 
 
 def read_file(file_path):
@@ -31,21 +38,21 @@ def read_file(file_path):
 
 
 def update_hyprpaper_config(wallpaper_path):
-    with open(config_file_path, "w") as config_file:
-        config_file.write(f"preload = {pfad}{wallpaper_path}\n")
-        config_file.write(f"wallpaper = ,{pfad}{wallpaper_path}\n")
+    with open(path_config_file, "w") as config_file:
+        config_file.write(f"preload = {path_backgrounds}{wallpaper_path}\n")
+        config_file.write(f"wallpaper = ,{path_backgrounds}{wallpaper_path}\n")
 
 
-def restart_hyprpaper():
+def restart_hyprpaper(timer: float):
     global subprocess_alive, timer_old, prozess
-    if time.time() >= timer_old + sleep_time and subprocess_alive:
+    if timer >= timer_old + sleep_time and subprocess_alive:
         prozess.kill()
         prozess.wait()
         subprocess_alive = False
     if not subprocess_alive:
         prozess = subprocess.Popen(["hyprpaper"])
         subprocess_alive = True
-        timer_old = time.time()
+        timer_old = timer
 
 
 def zufall(wallpapers):
@@ -54,7 +61,7 @@ def zufall(wallpapers):
 
 
 def read_pipe():
-    global run, timer_old
+    global run, timer_old, freeze, sleep_time
     while run:
         with open(FIFO, "r",  encoding="utf-8") as fifo:
             for line in fifo:
@@ -66,30 +73,43 @@ def read_pipe():
                 if "next" == line:
                     timer_old = timer_old - sleep_time
 
+                if "frezze" == line:
+                    if freeze:
+                        freeze = False
+                    else:
+                        freeze = True
+
+                if "sleep_time" in line:
+                    try:
+                        sleep_time = int(line.split(" ")[1])
+                    except ValueError:
+                        print("Value not correct")
+
 
 def main():
     try:
         os.mkfifo(FIFO)
     except FileExistsError:
         pass
-    bild_alt = read_file(".config/hypr/hyprpaper.conf")
-    wallpapers = os.listdir(pfad)
+    bild_alt = read_file(path_hyprconf)
+    wallpapers = os.listdir(path_backgrounds)
     bild_neu = zufall(wallpapers)
     global run
     global timer_old
-    timer_old = time.time()
     try:
         threading.Thread(target=read_pipe).start()
         while run:
-            # print("running ...")
-            wallpapers = os.listdir(pfad)
+            timer = time.time()
+            time.sleep(2)
+            if freeze:
+                continue
+            wallpapers = os.listdir(path_backgrounds)
             while bild_alt == bild_neu:
                 bild_neu = zufall(wallpapers)
 
             bild_alt = bild_neu
             update_hyprpaper_config(bild_neu)
-            restart_hyprpaper()
-            time.sleep(2)
+            restart_hyprpaper(timer)
         os.remove(FIFO)
     except KeyboardInterrupt:
         run = False
