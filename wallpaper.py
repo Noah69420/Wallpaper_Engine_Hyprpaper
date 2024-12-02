@@ -12,6 +12,7 @@ timer_old = 0
 prozess = ""
 
 FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper_fifo"
+
 run = True
 subprocess_alive = False
 
