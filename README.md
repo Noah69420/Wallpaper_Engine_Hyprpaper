@@ -1,2 +1,2 @@
 # wallpaper
-hallo
+Automatic wallpaper change for hyprpaper
