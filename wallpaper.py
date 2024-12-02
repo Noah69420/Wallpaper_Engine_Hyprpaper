@@ -10,7 +10,7 @@ sleep_time = 10
 timer_old = 0
 prozess = ""
 
-FIFO = "/home/noah/.config/hypr/tools/wallpaper_fifo"
+FIFO = "/home/noah/.config/hypr/tools/wallpaper/wallpaper_fifo"
 run = True
 subprocess_alive = False
 
