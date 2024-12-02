@@ -3,14 +3,16 @@ import os
 import random
 import subprocess
 import threading
+from pathlib import Path
 
-pfad = "/home/noah/.config/backgrounds/"
-config_file_path = "/home/noah/.config/hypr/hyprpaper.conf"
+pfad = f"{Path.home()}/.config/backgrounds/"
+config_file_path = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 sleep_time = 10
 timer_old = 0
 prozess = ""
 
-FIFO = "/home/noah/.config/hypr/tools/wallpaper/wallpaper_fifo"
+FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper_fifo"
+
 run = True
 subprocess_alive = False
 
