@@ -7,12 +7,12 @@ from pathlib import Path
 
 path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
 path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
-path_hyprconf: str = ".config/hypr/hyprpaper.conf"
-sleep_time: int = 600
+path_hyprconf: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
+sleep_time: int = 300
 timer_old: float = 0
 prozess = ""
 
-FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper_fifo"
+FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
 
 run = True
 subprocess_alive = False
@@ -67,17 +67,19 @@ def read_pipe():
             for line in fifo:
                 line = line.removesuffix("\n")
                 if line == "kill":
+                    freeze = False
                     run = False
                     print("Stop thread")
                     break
                 if "next" == line:
                     timer_old = timer_old - sleep_time
 
-                if "frezze" == line:
+                if "freeze" == line:
                     if freeze:
                         freeze = False
                     else:
                         freeze = True
+                    print("freeze is: ",freeze)
 
                 if "sleep_time" in line:
                     try:
@@ -85,6 +87,17 @@ def read_pipe():
                     except ValueError:
                         print("Value not correct")
 
+def change_wallpaper(bild_alt, bild_neu):
+    global timer_old
+    timer = time.time()
+    wallpapers = os.listdir(path_backgrounds)
+    while bild_alt == bild_neu:
+        bild_neu = zufall(wallpapers)
+
+    bild_alt = bild_neu
+    update_hyprpaper_config(bild_neu)
+    restart_hyprpaper(timer)
+    return bild_alt, bild_neu
 
 def main():
     try:
@@ -94,22 +107,15 @@ def main():
     bild_alt = read_file(path_hyprconf)
     wallpapers = os.listdir(path_backgrounds)
     bild_neu = zufall(wallpapers)
+    bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
     global run
-    global timer_old
     try:
         threading.Thread(target=read_pipe).start()
         while run:
-            timer = time.time()
-            time.sleep(2)
+            time.sleep(1)
             if freeze:
                 continue
-            wallpapers = os.listdir(path_backgrounds)
-            while bild_alt == bild_neu:
-                bild_neu = zufall(wallpapers)
-
-            bild_alt = bild_neu
-            update_hyprpaper_config(bild_neu)
-            restart_hyprpaper(timer)
+            bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
         os.remove(FIFO)
     except KeyboardInterrupt:
         run = False
