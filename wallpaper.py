@@ -87,6 +87,17 @@ def read_pipe():
                     except ValueError:
                         print("Value not correct")
 
+def change_wallpaper(bild_alt, bild_neu):
+    global timer_old
+    timer = time.time()
+    wallpapers = os.listdir(path_backgrounds)
+    while bild_alt == bild_neu:
+        bild_neu = zufall(wallpapers)
+
+    bild_alt = bild_neu
+    update_hyprpaper_config(bild_neu)
+    restart_hyprpaper(timer)
+    return bild_alt, bild_neu
 
 def main():
     try:
@@ -96,22 +107,15 @@ def main():
     bild_alt = read_file(path_hyprconf)
     wallpapers = os.listdir(path_backgrounds)
     bild_neu = zufall(wallpapers)
+    bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
     global run
-    global timer_old
     try:
         threading.Thread(target=read_pipe).start()
         while run:
-            timer = time.time()
-            time.sleep(2)
+            time.sleep(1)
             if freeze:
                 continue
-            wallpapers = os.listdir(path_backgrounds)
-            while bild_alt == bild_neu:
-                bild_neu = zufall(wallpapers)
-
-            bild_alt = bild_neu
-            update_hyprpaper_config(bild_neu)
-            restart_hyprpaper(timer)
+            bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
         os.remove(FIFO)
     except KeyboardInterrupt:
         run = False
