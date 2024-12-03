@@ -5,23 +5,27 @@ import subprocess
 import threading
 from pathlib import Path
 
+# Environment variables
 path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
 path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 path_hyprconf: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
-sleep_time: int = 300
+FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
+sleep_time: int = 300           # 300s =    5min
+notification_time = 3000        # 3000ms =  3s
+notification: bool = True
+
+# Global variables
 timer_old: float = 0
 prozess = ""
-
-FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
-
-run = True
-subprocess_alive = False
-
 run: bool = True
 subprocess_alive: bool = False
 
 # Modus
 freeze: bool = False
+
+def push_notification(msg):
+    if notification:
+        os.system(f"notify-send -t {notification_time} '{msg}'")
 
 
 def read_file(file_path):
@@ -58,6 +62,8 @@ def restart_hyprpaper(timer: float):
 def zufall(wallpapers):
     bild = random.choices(wallpapers)[0]
     return bild
+        
+
 
 
 def read_pipe():
@@ -69,16 +75,20 @@ def read_pipe():
                 if line == "kill":
                     freeze = False
                     run = False
+                    push_notification("kill Wallpaper_Engine_Hyprpaper and Hyprpaper :(")
                     print("Stop thread")
                     break
                 if "next" == line:
                     timer_old = timer_old - sleep_time
+                    push_notification("skip wallpaper -->")
 
                 if "freeze" == line:
                     if freeze:
                         freeze = False
+                        push_notification("-> un-freeze wallpaper")
                     else:
                         freeze = True
+                        push_notification("|| freeze wallpaper")
                     print("freeze is: ",freeze)
 
                 if "sleep_time" in line:

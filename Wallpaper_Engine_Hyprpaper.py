@@ -7,6 +7,8 @@ from pathlib import Path
 FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
 wallpaper_py = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper.py"
 
+notification: bool = True
+notification_time = 3000        # 3000ms =  3s
 
 def arg_parser():
     parser = argparse.ArgumentParser(
@@ -21,14 +23,21 @@ def arg_parser():
     return vars(parser.parse_args())
 
 
+def push_notification(msg):
+    if notification:
+        os.system(f"notify-send -t {notification_time} '{msg}'")
+
+
 def get_command(args: dict):
     if args["kill"]:
         return "kill"
     elif args["run"]:
         if os.path.exists(FIFO):
             print("Hyprpaper läuft bereits")
+            push_notification("Wallpaper_Engine_Hyprpaper is already running")
             exit(1)
         resume_wallpaper()
+        push_notification("run Wallpaper_Engine_Hyprpaper :)")
         exit(0)
     elif args["next"]:
         return "next"
@@ -62,6 +71,7 @@ def main():
     command: str = get_command(args)
     if not os.path.exists(FIFO):
         print(f"The FIFO file {FIFO} does not exist. Please ensure Wallpaper_Engine_Hyprpaper is running.")
+        push_notification("Wallpaper_Engine_Hyprpaper is already dead :(")
         exit(1)
     write_command(command)
 
