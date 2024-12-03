@@ -45,11 +45,11 @@ def update_hyprpaper_config(wallpaper_path):
 
 def restart_hyprpaper(timer: float):
     global subprocess_alive, timer_old, prozess
-    if timer >= timer_old + sleep_time and subprocess_alive:
+    if timer >= timer_old + sleep_time and subprocess_alive or not run:
         prozess.kill()
         prozess.wait()
         subprocess_alive = False
-    if not subprocess_alive:
+    if not subprocess_alive and run:
         prozess = subprocess.Popen(["hyprpaper"])
         subprocess_alive = True
         timer_old = timer
