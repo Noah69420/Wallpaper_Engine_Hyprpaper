@@ -37,9 +37,10 @@ def write_command(command):
 def main():
     if not os.path.isfile(FIFO):
         print("Wallpaper_Engine_Hyprpaper is not running!")
-        args: dict = arg_parser()
-        command: str = get_command(args)
-        write_command(command)
+        exit()
+    args: dict = arg_parser()
+    command: str = get_command(args)
+    write_command(command)
 
 
 if __name__ == "__main__":
