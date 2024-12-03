@@ -7,6 +7,7 @@ from pathlib import Path
 
 path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
 path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
+path_hyprconf: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 sleep_time: int = 300
 timer_old: float = 0
 prozess = ""
