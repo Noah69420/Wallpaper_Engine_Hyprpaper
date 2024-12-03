@@ -9,3 +9,11 @@ To kill the python script:
 ```sh
 echo "kill" >> path/to/wallpaper_fifo
 ```
+To freeze the python script:
+```sh
+echo "freeze" >> path/to/wallpaper_fifo
+```
+To un-freeze the python script:
+```sh
+echo "freeze" >> path/to/wallpaper_fifo
+```

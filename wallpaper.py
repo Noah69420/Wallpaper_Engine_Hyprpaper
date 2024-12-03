@@ -6,13 +6,14 @@ import threading
 from pathlib import Path
 
 path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
+print(f"--------------------------{path_backgrounds}")
 path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
-path_hyprconf: str = ".config/hypr/hyprpaper.conf"
-sleep_time: int = 600
+path_hyprconf: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
+sleep_time: int = 300
 timer_old: float = 0
 prozess = ""
 
-FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper_fifo"
+FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
 
 run = True
 subprocess_alive = False
@@ -67,17 +68,19 @@ def read_pipe():
             for line in fifo:
                 line = line.removesuffix("\n")
                 if line == "kill":
+                    freeze = False
                     run = False
                     print("Stop thread")
                     break
                 if "next" == line:
                     timer_old = timer_old - sleep_time
 
-                if "frezze" == line:
+                if "freeze" == line:
                     if freeze:
                         freeze = False
                     else:
                         freeze = True
+                    print("freeze is: ",freeze)
 
                 if "sleep_time" in line:
                     try:
