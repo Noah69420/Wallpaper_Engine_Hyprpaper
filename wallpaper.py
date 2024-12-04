@@ -10,7 +10,7 @@ path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
 path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 path_hyprconf: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
-sleep_time: int = 1             # 300s =    5min
+sleep_time: int = 300           # 300s =    5min
 notification_time = 3000        # 3000ms =  3s
 notification: bool = True
 
@@ -100,9 +100,8 @@ def read_pipe():
                     except ValueError:
                         print("Value not correct")
 
-def change_wallpaper(bild_alt, bild_neu):
+def change_wallpaper(bild_alt, bild_neu, timer):
     global timer_old
-    timer = time.time()
     wallpapers = os.listdir(path_backgrounds)
     print(f"bild_alt: {bild_alt}\n")
     while bild_alt == bild_neu:
@@ -119,20 +118,26 @@ def main():
         os.mkfifo(FIFO)
     except FileExistsError:
         pass
+    timer = time.time()
     bild_alt = read_file(path_hyprconf)
     wallpapers = os.listdir(path_backgrounds)
     bild_neu = zufall(wallpapers)
-    bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
+    bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu, timer)
 
     global run, wallpaper_change
     try:
         threading.Thread(target=read_pipe).start()
         while run:
+            timer = time.time()
+            print(timer)
+            print(timer_old)
+            if timer >= timer_old + sleep_time:
+                wallpaper_change = True
             time.sleep(1)
             if freeze:
                 continue
             elif wallpaper_change:
-                bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
+                bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu, timer)
                 wallpaper_change = False
         os.remove(FIFO)
     except KeyboardInterrupt:
