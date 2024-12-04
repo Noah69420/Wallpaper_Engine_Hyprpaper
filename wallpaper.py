@@ -10,7 +10,7 @@ path_backgrounds: str = f"{Path.home()}/.config/backgrounds/"
 path_config_file: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 path_hyprconf: str = f"{Path.home()}/.config/hypr/hyprpaper.conf"
 FIFO = f"{Path.home()}/.config/hypr/tools/wallpaper/wallpaper_fifo"
-sleep_time: int = 300           # 300s =    5min
+sleep_time: int = 1             # 300s =    5min
 notification_time = 3000        # 3000ms =  3s
 notification: bool = True
 
@@ -19,6 +19,7 @@ timer_old: float = 0
 prozess = ""
 run: bool = True
 subprocess_alive: bool = False
+wallpaper_change: bool = False
 
 # Modus
 freeze: bool = False
@@ -67,28 +68,30 @@ def zufall(wallpapers):
 
 
 def read_pipe():
-    global run, timer_old, freeze, sleep_time
+    global run, timer_old, freeze, sleep_time, wallpaper_change
     while run:
         with open(FIFO, "r",  encoding="utf-8") as fifo:
             for line in fifo:
                 line = line.removesuffix("\n")
                 if line == "kill":
                     freeze = False
+                    wallpaper_change = True
                     run = False
                     push_notification("kill Wallpaper_Engine_Hyprpaper and Hyprpaper :(")
                     print("Stop thread")
                     break
                 if "next" == line:
                     timer_old = timer_old - sleep_time
-                    push_notification("skip wallpaper -->")
+                    push_notification("skip wallpaper")
+                    wallpaper_change = True
 
                 if "freeze" == line:
                     if freeze:
                         freeze = False
-                        push_notification("-> un-freeze wallpaper")
+                        push_notification("un-freeze wallpaper")
                     else:
                         freeze = True
-                        push_notification("|| freeze wallpaper")
+                        push_notification("freeze wallpaper")
                     print("freeze is: ",freeze)
 
                 if "sleep_time" in line:
@@ -101,8 +104,10 @@ def change_wallpaper(bild_alt, bild_neu):
     global timer_old
     timer = time.time()
     wallpapers = os.listdir(path_backgrounds)
+    print(f"bild_alt: {bild_alt}\n")
     while bild_alt == bild_neu:
         bild_neu = zufall(wallpapers)
+        print(f"bild_neu: {bild_neu}\n")
 
     bild_alt = bild_neu
     update_hyprpaper_config(bild_neu)
@@ -118,14 +123,17 @@ def main():
     wallpapers = os.listdir(path_backgrounds)
     bild_neu = zufall(wallpapers)
     bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
-    global run
+
+    global run, wallpaper_change
     try:
         threading.Thread(target=read_pipe).start()
         while run:
             time.sleep(1)
             if freeze:
                 continue
-            bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
+            elif wallpaper_change:
+                bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu)
+                wallpaper_change = False
         os.remove(FIFO)
     except KeyboardInterrupt:
         run = False
