@@ -71,7 +71,7 @@ def main():
     command: str = get_command(args)
     if not os.path.exists(FIFO):
         print(f"The FIFO file {FIFO} does not exist. Please ensure Wallpaper_Engine_Hyprpaper is running.")
-        push_notification("Wallpaper_Engine_Hyprpaper is already dead :(")
+        push_notification("Wallpaper_Engine_Hyprpaper is dead :(")
         exit(1)
     write_command(command)
 
