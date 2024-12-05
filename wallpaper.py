@@ -48,12 +48,14 @@ def update_hyprpaper_config(wallpaper_path):
         config_file.write(f"wallpaper = ,{path_backgrounds}{wallpaper_path}\n")
 
 
+
 def restart_hyprpaper():
     global subprocess_alive, prozess
     if subprocess_alive or not run:
         prozess.kill()
         prozess.wait()
         subprocess_alive = False
+
     if not subprocess_alive and run:
         prozess = subprocess.Popen(["hyprpaper"])
         subprocess_alive = True
@@ -80,6 +82,7 @@ def change_wallpaper(wallpaper_old):
 
 def read_pipe():
     global run, timer_old, freeze, sleep_time
+
     while run:
         with open(FIFO, "r",  encoding="utf-8") as fifo:
             for line in fifo:
@@ -89,6 +92,7 @@ def read_pipe():
                     push_notification("kill Wallpaper_Engine_Hyprpaper and Hyprpaper :(")
                     print("Stop thread")
                     break
+
                 if "next" == line:
                     timer_old = timer_old - sleep_time
                     push_notification("skip wallpaper")
@@ -109,6 +113,22 @@ def read_pipe():
                         print("Value not correct")
 
 
+def change_wallpaper(bild_alt, bild_neu, timer):
+    global timer_old
+    wallpapers = os.listdir(path_backgrounds)
+    print(f"\nbild_alt: {bild_alt}\n")
+
+    while bild_alt == bild_neu:
+        bild_neu = zufall(wallpapers)
+        print(f"bild_neu: {bild_neu}\n")
+
+    bild_alt = bild_neu
+    update_hyprpaper_config(bild_neu)
+    restart_hyprpaper(timer)
+    return bild_alt, bild_neu
+
+
+
 def main():
     global run, timer_old
 
@@ -116,6 +136,7 @@ def main():
         os.mkfifo(FIFO)
     except FileExistsError:
         pass
+
     wallpaper_old = read_file(path_hyprconf)
     wallpaper_old = change_wallpaper(wallpaper_old)
 
@@ -123,13 +144,16 @@ def main():
         threading.Thread(target=read_pipe).start()
         while run:
             timer_now = time.time()
+
             time.sleep(1)
             if freeze and run:
                 continue
             if timer_now <= timer_old + sleep_time and run:
                 continue
+
             wallpaper_old = change_wallpaper(wallpaper_old)
             timer_old = timer_now
+
         os.remove(FIFO)
     except KeyboardInterrupt:
         run = False
