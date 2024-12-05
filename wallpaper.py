@@ -103,7 +103,7 @@ def read_pipe():
 def change_wallpaper(bild_alt, bild_neu, timer):
     global timer_old
     wallpapers = os.listdir(path_backgrounds)
-    print(f"bild_alt: {bild_alt}\n")
+    print(f"\nbild_alt: {bild_alt}\n")
     while bild_alt == bild_neu:
         bild_neu = zufall(wallpapers)
         print(f"bild_neu: {bild_neu}\n")
@@ -129,8 +129,8 @@ def main():
         threading.Thread(target=read_pipe).start()
         while run:
             timer = time.time()
-            print(timer)
-            print(timer_old)
+            print(f"time_now: {timer}")
+            print(f"OLD_Timer: {timer_old}")
             if timer >= timer_old + sleep_time:
                 wallpaper_change = True
             time.sleep(1)
