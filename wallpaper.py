@@ -27,6 +27,7 @@ freeze: bool = False
 def push_notification(msg):
     if notification:
         os.system(f"notify-send -t {notification_time} '{msg}'")
+        print(f"notification: {msg}")
 
 
 def read_file(file_path):
@@ -90,8 +91,11 @@ def read_pipe():
                     print("Stop thread")
                     break
                 if "next" == line:
-                    timer_old = timer_old - sleep_time
-                    push_notification("skip wallpaper")
+                    if not freeze:
+                        timer_old = timer_old - sleep_time
+                        push_notification("skip wallpaper")
+                    else:
+                        push_notification("you can`t skip wallpaper while freeze")
 
                 if "freeze" == line:
                     if freeze:
