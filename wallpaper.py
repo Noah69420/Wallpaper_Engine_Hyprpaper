@@ -21,7 +21,6 @@ timer_old: float = 0
 prozess = ""
 run: bool = True
 subprocess_alive: bool = False
-wallpaper_change: bool = False
 
 # Modus
 freeze: bool = False
@@ -30,6 +29,7 @@ freeze: bool = False
 def push_notification(msg):
     if notification:
         os.system(f"notify-send -t {notification_time} '{msg}'")
+        print(f"notification: {msg}")
 
 
 def read_file(file_path):
@@ -51,16 +51,15 @@ def update_hyprpaper_config(wallpaper_path):
         config_file.write(f"wallpaper = ,{path_backgrounds}{wallpaper_path}\n")
 
 
-def restart_hyprpaper(timer: float):
-    global subprocess_alive, timer_old, prozess
-    if timer >= timer_old + sleep_time and subprocess_alive or not run:
+def restart_hyprpaper():
+    global subprocess_alive, prozess
+    if subprocess_alive or not run:
         prozess.kill()
         prozess.wait()
         subprocess_alive = False
     if not subprocess_alive and run:
         prozess = subprocess.Popen(["hyprpaper"])
         subprocess_alive = True
-        timer_old = timer
 
 
 def zufall(wallpapers):
@@ -68,23 +67,37 @@ def zufall(wallpapers):
     return bild
 
 
+def change_wallpaper(wallpaper_old):
+    wallpapers = os.listdir(path_backgrounds)
+    print(f"\nwallpaper_old: {wallpaper_old}\n")
+    wallpaper_new = zufall(wallpapers)
+    while wallpaper_old == wallpaper_new:
+        wallpaper_new = zufall(wallpapers)
+        print(f"wallpaper_new: {wallpaper_new}\n")
+
+    wallpaper_old = wallpaper_new
+    update_hyprpaper_config(wallpaper_new)
+    restart_hyprpaper()
+    return wallpaper_old
+
+
 def read_pipe():
-    global run, timer_old, freeze, sleep_time, wallpaper_change
+    global run, timer_old, freeze, sleep_time
     while run:
         with open(FIFO, "r",  encoding="utf-8") as fifo:
             for line in fifo:
                 line = line.removesuffix("\n")
                 if line == "kill":
-                    freeze = False
-                    wallpaper_change = True
                     run = False
                     push_notification("kill Wallpaper_Engine_Hyprpaper and Hyprpaper :(")
                     print("Stop thread")
                     break
                 if "next" == line:
-                    timer_old = timer_old - sleep_time
-                    push_notification("skip wallpaper")
-                    wallpaper_change = True
+                    if not freeze:
+                        timer_old = timer_old - sleep_time
+                        push_notification("skip wallpaper")
+                    else:
+                        push_notification("you can`t skip wallpaper while freeze")
 
                 if "freeze" == line:
                     if freeze:
@@ -117,31 +130,28 @@ def change_wallpaper(bild_alt, bild_neu, timer):
 
 
 def main():
+    global run, timer_old
+
     try:
         os.mkfifo(FIFO)
     except FileExistsError:
         pass
-    timer = time.time()
-    bild_alt = read_file(path_hyprconf)
-    wallpapers = os.listdir(path_backgrounds)
-    bild_neu = zufall(wallpapers)
-    bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu, timer)
+    wallpaper_old = read_file(path_hyprconf)
+    wallpaper_old = change_wallpaper(wallpaper_old)
+    timer_now = time.time()
+    timer_old = timer_now
 
-    global run, wallpaper_change
     try:
         threading.Thread(target=read_pipe).start()
         while run:
-            timer = time.time()
-            print(f"time_now: {timer}")
-            print(f"OLD_Timer: {timer_old}")
-            if timer >= timer_old + sleep_time:
-                wallpaper_change = True
+            timer_now = time.time()
             time.sleep(1)
-            if freeze:
+            if freeze and run:
                 continue
-            elif wallpaper_change:
-                bild_alt, bild_neu = change_wallpaper(bild_alt, bild_neu, timer)
-                wallpaper_change = False
+            if timer_now <= timer_old + sleep_time and run:
+                continue
+            wallpaper_old = change_wallpaper(wallpaper_old)
+            timer_old = timer_now
         os.remove(FIFO)
     except KeyboardInterrupt:
         run = False
