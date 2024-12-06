@@ -6,7 +6,7 @@ import threading
 import configparser
 
 config = configparser.ConfigParser()
-config.read_file(open(os.path.expanduser("~/.config/hypr/tools/wallpaper/wallpaper_fifo")))
+config.read_file(open(os.path.expanduser("~/.config/Wallpaper_Engine_Hyprpaper.ini")))
 
 # Environment variables
 path_backgrounds: str = os.path.expanduser(config["WALLPAPER"]["path_wallpaper"])

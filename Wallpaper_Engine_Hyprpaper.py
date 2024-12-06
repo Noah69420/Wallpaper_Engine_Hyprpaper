@@ -8,7 +8,7 @@ import configparser
 def init_conf():
     config = configparser.ConfigParser()
     try:
-        config.read_file(open(os.path.expanduser("~/.config/hypr/tools/wallpaper/wallpaper_fifo")))
+        config.read_file(open(os.path.expanduser("~/.config/Wallpaper_Engine_Hyprpaper.ini")))
     except FileNotFoundError:
         config["DEFAULT"] = {"FIFO": "~/.config/hypr/tools/wallpaper/wallpaper_fifo",
                              "wallpaper_py": "~/.config/hypr/tools/wallpaper/wallpaper.py",
