@@ -118,6 +118,8 @@ def main():
         pass
     wallpaper_old = read_file(path_hyprconf)
     wallpaper_old = change_wallpaper(wallpaper_old)
+    timer_now = time.time()
+    timer_old = timer_now
 
     try:
         threading.Thread(target=read_pipe).start()
